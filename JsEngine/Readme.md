@@ -26,10 +26,12 @@ It is designed for high performance using a combination of interpretation, Just-
 - Produces **optimized machine code** for the CPU.
 - Performs optimizations:
   - **Type Specialization** (replaces generic ops with CPU-specific ones).
-  - **Inlining** (removes function call overhead).
+  - **Inlining** (replaces function calls with the actual function body to remove call overhead).
   - **Constant Folding** (precomputes constant expressions).
   - **Dead Code Elimination** (removes unused code).
   - **Loop Optimization**.
+  - **Inline Caching** (caches object property access patterns for faster lookups).
+  - **Copy Elision** (removes unnecessary object copying by constructing values directly in the target location).
 
 ### 5. De-optimization
 - If assumptions from profiling are wrong (e.g., variable type changes), 
@@ -57,6 +59,31 @@ It is designed for high performance using a combination of interpretation, Just-
 
 ---
 
+## Key Optimization Techniques in V8
+
+### 1. Inlining
+- Replaces a function call with its body to eliminate call overhead.
+- Enables further optimizations across function boundaries.
+- Used mainly for **small, frequently used** functions.
+
+### 2. Inline Caching (IC)
+- Caches the structure (hidden class) of objects to speed up property lookups.
+- Works with type feedback from Ignition to make property access predictable.
+- Reduces overhead for repeated object shape accesses.
+- Happens at runtime inside the generated machine code.
+
+- Works closely with type feedback from the Ignition interpreter.
+
+- Helps TurboFan produce faster code because property accesses become predictable.
+
+
+### 3. Copy Elision
+- Avoids unnecessary copying of objects or values.
+- Directly constructs objects in the target location instead of creating temporary copies.
+- Often works with **escape analysis** to determine if an object is short-lived.
+
+---
+
 ## High-Level Flow
 
 ```
@@ -76,8 +103,9 @@ Garbage Collection runs during execution
 
 ---
 
-**Key Points You Asked About**
+**Key Points**
 - Compiler appears in **TurboFan stage**, producing optimized machine code.
 - Optimization is based on **runtime profiling**.
 - De-optimization happens dynamically when runtime data invalidates assumptions.
 - Ignition and TurboFan work **together** — Ignition starts execution, TurboFan speeds it up.
+- V8 uses advanced techniques like **inlining**, **inline caching**, and **copy elision** to further improve performance.
